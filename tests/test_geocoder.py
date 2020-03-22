@@ -371,3 +371,22 @@ def test_geocoder_language():
     response = mapbox.Geocoder(access_token='pk.test').forward(
         '1600 pennsylvania ave nw', languages=['en', 'de'])
     assert response.status_code == 200
+
+@responses.activate
+def test_geocoder_reverse_language():
+    """Reverse geocoding with language"""
+
+    lon, lat = -77.4371, 37.5227
+    body = json.dumps({"query": [lon, lat]})
+
+    responses.add(
+        responses.GET,
+        'https://api.mapbox.com/geocoding/v5/mapbox.places/{0},{1}.json?language=en,de&access_token=pk.test'.format(lon, lat),
+        match_querystring=True,
+        body=body,
+        status=200,
+        content_type='application/json')
+
+    response = mapbox.Geocoder(access_token='pk.test').reverse(lon=lon, lat=lat, languages=['en', 'de'])
+    assert response.status_code == 200
+    assert response.json()['query'] == [lon, lat]
